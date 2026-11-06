@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Login - Tienda Deportiva</title>
+    <style>
+        body { background-color: #121212; color: white; font-family: sans-serif; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; }
+        .login-box { background: #1e1e1e; padding: 40px; border-radius: 10px; text-align: center; width: 300px; }
+        input { width: 90%; padding: 10px; margin: 10px 0; border-radius: 5px; border: none; }
+        button { width: 100%; padding: 10px; background: #ff5722; color: white; border: none; border-radius: 5px; cursor: pointer; font-weight: bold; margin-top: 10px;}
+        h1 { color: #ff5722; }
+        a { color: #ff5722; text-decoration: none; }
+    </style>
+</head>
+<body>
+    <div class="login-box">
+        <h1>SportStore</h1>
+        
+        <div id="login-form">
+            <p>Inicia sesión para ver el catálogo</p>
+            <input type="email" id="email" placeholder="Correo electrónico">
+            <input type="password" id="password" placeholder="Contraseña">
+            <button onclick="login()">Entrar</button>
+            <p style="font-size: 12px; margin-top: 15px;">¿No tienes cuenta? <a href="#" onclick="mostrarRegistro()">Regístrate aquí</a></p>
+        </div>
+
+        <div id="register-form" style="display: none;">
+            <p>Crea una cuenta nueva</p>
+            <input type="email" id="reg-email" placeholder="Correo electrónico">
+            <input type="password" id="reg-password" placeholder="Contraseña (mín. 6 caracteres)">
+            <button onclick="registrarse()">Registrarse</button>
+            <p style="font-size: 12px; margin-top: 15px;"><a href="#" onclick="mostrarLogin()">Volver al Login</a></p>
+        </div>
+    </div>
+
+    <script type="module">
+        import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm'
+        
+        const response = await fetch('/api/config');
+        const config = await response.json();
+        const supabase = createClient(config.url, config.key)
+
+        window.mostrarRegistro = () => {
+            document.getElementById('login-form').style.display = 'none';
+            document.getElementById('register-form').style.display = 'block';
+        }
+
+        window.mostrarLogin = () => {
+            document.getElementById('register-form').style.display = 'none';
+            document.getElementById('login-form').style.display = 'block';
+        }
+
+        window.login = async function() {
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+            const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+            if (error) alert("Error: " + error.message);
+            else window.location.href = 'tienda.html'; 
+        }
+
+        window.registrarse = async function() {
+            const email = document.getElementById('reg-email').value;
+            const password = document.getElementById('reg-password').value;
+            const { data, error } = await supabase.auth.signUp({ email, password });
+            if (error) alert("Error al registrar: " + error.message);
+            else {
+                alert("¡Cuenta creada con éxito! Ahora puedes iniciar sesión.");
+                mostrarLogin();
+            }
+        }
+    </script>
+</body>
+</html>

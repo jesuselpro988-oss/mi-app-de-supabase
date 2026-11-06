@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Ayuda - SportStore</title>
+    <style>
+        body { background-color: #121212; color: white; font-family: sans-serif; margin: 0; }
+        header { display: flex; align-items: center; padding: 20px 40px; background: #1e1e1e; border-bottom: 2px solid #ff5722; gap: 20px;}
+        h1 { color: #ff5722; margin: 0; }
+        .btn-volver { background: #333; border: 1px solid #ff5722; color: #ff5722; padding: 8px 15px; border-radius: 5px; cursor: pointer; font-weight: bold; text-decoration: none; }
+        .contenedor { padding: 40px; max-width: 800px; margin: 0 auto; }
+        section { background: #1e1e1e; padding: 30px; border-radius: 10px; margin-bottom: 20px; }
+        .numero { font-size: 24px; color: #ff5722; font-weight: bold; margin-top: 10px; }
+        textarea { width: 100%; height: 100px; padding: 10px; background: #2a2a2a; color: white; border: 1px solid #333; border-radius: 5px; margin-bottom: 10px; box-sizing: border-box; }
+        button { background: #ff5722; color: white; border: none; padding: 10px 20px; border-radius: 5px; cursor: pointer; font-weight: bold;}
+    </style>
+</head>
+<body>
+    <header>
+        <a href="tienda.html" class="btn-volver">← Volver al catálogo</a>
+        <h1>Ayuda y Contacto</h1>
+    </header>
+
+    <main class="contenedor">
+        <section>
+            <h2>📞 Contacto</h2>
+            <p>Llámanos o escríbenos por WhatsApp:</p>
+            <p class="numero">+52 123 456 7890</p>
+        </section>
+
+        <section>
+            <h2>📝 Buzón de Sugerencias</h2>
+            <form id="form-sugerencias">
+                <textarea id="sugerencia" placeholder="Escribe tu sugerencia aquí..." required></textarea>
+                <button type="submit">Enviar Sugerencia</button>
+            </form>
+            <p id="msj-sugerencia" style="color: #4CAF50; display: none; margin-top: 10px;">¡Gracias! Tu sugerencia ha sido enviada.</p>
+        </section>
+    </main>
+
+    <script>
+        document.getElementById('form-sugerencias').addEventListener('submit', (e) => {
+            e.preventDefault();
+            document.getElementById('msj-sugerencia').style.display = 'block';
+            document.getElementById('sugerencia').value = '';
+        });
+    </script>
+</body>
+</html>
