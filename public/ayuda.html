@@ -9,10 +9,11 @@
         h1 { color: #ff5722; margin: 0; }
         .btn-volver { background: #333; border: 1px solid #ff5722; color: #ff5722; padding: 8px 15px; border-radius: 5px; cursor: pointer; font-weight: bold; text-decoration: none; }
         .contenedor { padding: 40px; max-width: 800px; margin: 0 auto; }
-        section { background: #1e1e1e; padding: 30px; border-radius: 10px; margin-bottom: 20px; }
+        section { background: #1e1e1e; padding: 30px; border-radius: 10px; margin-bottom: 20px; border: 1px solid #333;}
         .numero { font-size: 24px; color: #ff5722; font-weight: bold; margin-top: 10px; }
-        textarea { width: 100%; height: 100px; padding: 10px; background: #2a2a2a; color: white; border: 1px solid #333; border-radius: 5px; margin-bottom: 10px; box-sizing: border-box; }
-        button { background: #ff5722; color: white; border: none; padding: 10px 20px; border-radius: 5px; cursor: pointer; font-weight: bold;}
+        textarea { width: 100%; height: 120px; padding: 10px; background: #2a2a2a; color: white; border: 1px solid #333; border-radius: 5px; margin-bottom: 15px; box-sizing: border-box; font-family: sans-serif; resize: vertical;}
+        button { background: #ff5722; color: white; border: none; padding: 12px 25px; border-radius: 5px; cursor: pointer; font-weight: bold; font-size: 16px;}
+        button:hover { background: #e64a19; }
     </style>
 </head>
 <body>
@@ -32,17 +33,41 @@
             <h2>📝 Buzón de Sugerencias</h2>
             <form id="form-sugerencias">
                 <textarea id="sugerencia" placeholder="Escribe tu sugerencia aquí..." required></textarea>
-                <button type="submit">Enviar Sugerencia</button>
+                <button type="submit" id="btn-enviar">Enviar Sugerencia</button>
             </form>
-            <p id="msj-sugerencia" style="color: #4CAF50; display: none; margin-top: 10px;">¡Gracias! Tu sugerencia ha sido enviada.</p>
+            <p id="msj-sugerencia" style="color: #4CAF50; display: none; margin-top: 15px; font-weight: bold;">¡Gracias! Tu sugerencia ha sido enviada.</p>
         </section>
     </main>
 
-    <script>
-        document.getElementById('form-sugerencias').addEventListener('submit', (e) => {
+    <script type="module">
+        import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm'
+        
+        const response = await fetch('/api/config');
+        const config = await response.json();
+        const supabase = createClient(config.url, config.key);
+
+        document.getElementById('form-sugerencias').addEventListener('submit', async (e) => {
             e.preventDefault();
-            document.getElementById('msj-sugerencia').style.display = 'block';
-            document.getElementById('sugerencia').value = '';
+            const btn = document.getElementById('btn-enviar');
+            const texto = document.getElementById('sugerencia').value;
+            const msj = document.getElementById('msj-sugerencia');
+
+            btn.textContent = 'Enviando...';
+            btn.disabled = true;
+
+            const { error } = await supabase.from('sugerencias').insert([{ sugerencia: texto }]);
+
+            if (error) {
+                alert("Error al enviar: " + error.message);
+                btn.textContent = 'Enviar Sugerencia';
+                btn.disabled = false;
+            } else {
+                msj.style.display = 'block';
+                document.getElementById('sugerencia').value = '';
+                btn.textContent = 'Enviar Sugerencia';
+                btn.disabled = false;
+                setTimeout(() => { msj.style.display = 'none'; }, 4000);
+            }
         });
     </script>
 </body>

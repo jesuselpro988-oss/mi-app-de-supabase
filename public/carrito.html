@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Mi Carrito - SportStore</title>
+    <style>
+        body { background-color: #121212; color: white; font-family: sans-serif; margin: 0; padding-bottom: 40px;}
+        header { display: flex; align-items: center; justify-content: space-between; padding: 20px 40px; background: #1e1e1e; border-bottom: 2px solid #ff5722; }
+        h1 { color: #ff5722; margin: 0; }
+        .btn-volver { background: #333; border: 1px solid #ff5722; color: #ff5722; padding: 8px 15px; border-radius: 5px; cursor: pointer; font-weight: bold; text-decoration: none; }
+        .carrito-container { max-width: 800px; margin: 40px auto; background: #1e1e1e; padding: 30px; border-radius: 10px; border: 1px solid #333; }
+        .carrito-item { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #333; padding: 15px 0; }
+        .controles-cantidad { display: flex; align-items: center; gap: 15px; }
+        .btn-cantidad { background: #333; border: 1px solid #555; color: white; border-radius: 3px; padding: 5px 12px; cursor: pointer; font-size: 16px;}
+        .btn-eliminar { background: transparent; border: none; color: #ff5252; cursor: pointer; font-size: 20px; }
+        .total-container { display: flex; justify-content: space-between; margin-top: 30px; font-size: 24px; font-weight: bold; color: #ff5722; border-top: 2px solid #333; padding-top: 20px;}
+        .btn-pagar { width: 100%; padding: 15px; background: #555; color: #aaa; border: none; border-radius: 5px; font-weight: bold; margin-top: 20px; cursor: not-allowed; font-size: 18px;}
+        .vacio { text-align: center; color: #888; margin-top: 20px; }
+    </style>
+</head>
+<body>
+    <header>
+        <a href="tienda.html" class="btn-volver">← Volver al catálogo</a>
+        <h1>🛒 Mi Carrito</h1>
+    </header>
+
+    <main class="carrito-container">
+        <div id="lista-carrito"></div>
+        
+        <div class="total-container">
+            <span>Total a pagar:</span>
+            <span id="total-carrito">$0.00</span>
+        </div>
+
+        <button class="btn-pagar" disabled>Pagar (Próximamente)</button>
+    </main>
+
+    <script type="module">
+        import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm'
+        
+        const response = await fetch('/api/config');
+        const config = await response.json();
+        const supabase = createClient(config.url, config.key);
+
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user) window.location.href = 'index.html';
+
+        let carrito = [];
+        await cargarCarritoDesdeDB();
+
+        async function cargarCarritoDesdeDB() {
+            const { data, error } = await supabase
+                .from('carrito')
+                .select(`
+                    id, cantidad, talla, producto_id,
+                    productos ( nombre, precio )
+                `)
+                .eq('user_id', user.id);
+
+            if (!error && data) {
+                carrito = data;
+                actualizarInterfazCarrito();
+            }
+        }
+
+        function actualizarInterfazCarrito() {
+            let totalPrecio = 0;
+            const lista = document.getElementById('lista-carrito');
+            lista.innerHTML = '';
+
+            if (carrito.length === 0) {
+                lista.innerHTML = `<p class="vacio">Tu carrito está vacío. ¡Ve a comprar algo!</p>`;
+            }
+
+            carrito.forEach((item) => {
+                totalPrecio += (item.productos.precio * item.cantidad);
+
+                lista.innerHTML += `
+                    <div class="carrito-item">
+                        <div>
+                            <strong style="font-size: 18px;">${item.productos.nombre}</strong><br>
+                            <small style="color: #aaa;">Talla: ${item.talla} | Precio: $${item.productos.precio}</small>
+                        </div>
+                        <div class="controles-cantidad">
+                            <button class="btn-cantidad" onclick="cambiarCantidad(${item.id}, ${item.cantidad - 1})">-</button>
+                            <span style="font-size: 18px;">${item.cantidad}</span>
+                            <button class="btn-cantidad" onclick="cambiarCantidad(${item.id}, ${item.cantidad + 1})">+</button>
+                            <button class="btn-eliminar" onclick="eliminarDelCarrito(${item.id})">🗑️</button>
+                        </div>
+                    </div>
+                `;
+            });
+
+            document.getElementById('total-carrito').textContent = `$${totalPrecio.toFixed(2)}`;
+        }
+
+        window.cambiarCantidad = async (id, nuevaCantidad) => {
+            if (nuevaCantidad < 1) return;
+            await supabase.from('carrito').update({ cantidad: nuevaCantidad }).eq('id', id);
+            await cargarCarritoDesdeDB();
+        }
+
+        window.eliminarDelCarrito = async (id) => {
+            await supabase.from('carrito').delete().eq('id', id);
+            await cargarCarritoDesdeDB();
+        }
+    </script>
+</body>
+</html>
